@@ -1,0 +1,67 @@
+import 'package:flutter/material.dart';
+
+class FuelTrackingScreen extends StatefulWidget {
+  const FuelTrackingScreen({super.key});
+
+  @override
+  State<FuelTrackingScreen> createState() => _FuelTrackingScreenState();
+}
+
+class _FuelTrackingScreenState extends State<FuelTrackingScreen> {
+  List<Map<String, String>> vehicles = [
+    {
+      'vehicleNumber': 'TH80481234',
+      'type': 'Car',
+      'ownershipName': 'Office Vehicle',
+      'userName': 'John Doe',
+      'brandModel': 'Hyundai Creta',
+      'fuelType': 'Diesel',
+      'maintenanceExpiry': '2024-12-01',
+      'remarks': 'No issues'
+    },
+    {
+      'vehicleNumber': 'KA91C05678',
+      'type': 'Bike',
+      'ownershipName': 'Personal Vehicle',
+      'userName': 'Raj Kumar',
+      'brandModel': 'Honda Activa',
+      'fuelType': 'Petrol',
+      'maintenanceExpiry': '2024-06-01',
+      'remarks': 'Regular service done'
+    },
+    {
+      'vehicleNumber': 'MH2EF9012',
+      'type': 'Car',
+      'ownershipName': 'Company Car',
+      'userName': 'Priya Sharma',
+      'brandModel': 'Maruti Swift',
+      'fuelType': 'Petrol CNG',
+      'maintenanceExpiry': '2024-10-15',
+      'remarks': 'Ready for resale'
+    }
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Fuel Tracking')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ListView.builder(
+          itemCount: vehicles.length,
+          itemBuilder: (context, index) {
+            final vehicle = vehicles[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ListTile(
+                title: Text(vehicle['vehicleNumber'] ?? ''),
+                subtitle: Text('${vehicle['brandModel']} (${vehicle['fuelType']})'),
+                trailing: Text(vehicle['remarks'] ?? ''),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
