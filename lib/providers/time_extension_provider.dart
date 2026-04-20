@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../core/constants/app_constants.dart';
 
 class Vehicle {
   final String number;
@@ -42,7 +43,7 @@ class TimeExtensionProvider extends ChangeNotifier {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://fleet-vehicle-mgmt-backend-2.onrender.com/api/booking/getAll'),
+            '${AppConstants.baseUrl}/booking/getAll'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -145,7 +146,7 @@ class TimeExtensionProvider extends ChangeNotifier {
 
       final response = await http.put(
         Uri.parse(
-            'https://fleet-vehicle-mgmt-backend-2.onrender.com/api/booking/extend-time/$bookingId'),
+            '${AppConstants.baseUrl}/booking/extend-time/$bookingId'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

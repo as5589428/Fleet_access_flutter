@@ -4,19 +4,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/vehicle_start_model.dart';
 import 'package:http_parser/http_parser.dart';
 import 'dart:io';
+import '../core/constants/app_constants.dart';
 
 class VehicleStartService {
-  static const String _baseUrl = 'https://fleet-vehicle-mgmt-backend-2.onrender.com/api';
+  static const String _baseUrl = AppConstants.baseUrl;
 
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    return prefs.getString(AppConstants.tokenKey);
   }
 
   Future<List<VehicleDropdownModel>> getVehiclesForDropdown() async {
     try {
       final token = await _getToken();
-      final response = await http.get(
+      
+      // Try fetching booked vehicles first
+      var response = await http.get(
         Uri.parse('$_baseUrl/booking/dropdown/vehicleNumber?status=booked'),
         headers: {
           'Content-Type': 'application/json',
@@ -24,14 +27,34 @@ class VehicleStartService {
         },
       );
 
+      // If no booked vehicles or error, try fetching all vehicles
+      if (response.statusCode != 200 || _isEmptyResponse(response.body)) {
+        response = await http.get(
+          Uri.parse('$_baseUrl/booking/dropdown/vehicleNumber'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+      }
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        final List<VehicleDropdownModel> vehicles = [];
+        final Set<String> seenNumbers = {};
+
         if (data['data'] != null && data['data'] is List) {
-          return (data['data'] as List)
-              .map((item) => VehicleDropdownModel.fromJson(item))
-              .toList();
+          for (var item in data['data']) {
+            final model = VehicleDropdownModel.fromJson(item);
+            if (model.vehicleNumber != null && 
+                model.vehicleNumber!.isNotEmpty && 
+                !seenNumbers.contains(model.vehicleNumber)) {
+              vehicles.add(model);
+              seenNumbers.add(model.vehicleNumber!);
+            }
+          }
         }
-        return [];
+        return vehicles;
       } else {
         throw Exception('Failed to load vehicles');
       }
@@ -158,7 +181,7 @@ class VehicleStartService {
       final token = await _getToken();
       var request = http.MultipartRequest(
         'PUT',
-        Uri.parse('$_baseUrl/vehicle/start/$id'),
+        Uri.parse('$_baseUrl/vehicle/start/update/$id'),
       );
 
       request.headers.addAll({
@@ -225,21 +248,35 @@ class VehicleStartService {
   }
 
   Future<void> deleteStartEntry(String id) async {
+    final url = '$_baseUrl/vehicle/start/delete?id=$id';
     try {
       final token = await _getToken();
       final response = await http.delete(
-        Uri.parse('$_baseUrl/vehicle/start/$id'),
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
       );
 
-      if (response.statusCode != 200) {
-        throw Exception('Failed to delete vehicle start entry');
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return;
+      } else {
+        throw Exception(
+            'Failed with status ${response.statusCode} at $url: ${response.body}');
       }
     } catch (e) {
-      throw Exception('Error deleting vehicle start entry: $e');
+      throw Exception('Error deleting vehicle start entry at $url: $e');
+    }
+  }
+
+  bool _isEmptyResponse(String body) {
+    try {
+      final data = json.decode(body);
+      return data['data'] == null ||
+          (data['data'] is List && (data['data'] as List).isEmpty);
+    } catch (_) {
+      return true;
     }
   }
 }

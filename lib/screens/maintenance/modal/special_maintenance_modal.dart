@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/special_maintenance_provider.dart';
 import '../../../models/special_maintenance_model.dart';
+import '../../../core/constants/app_constants.dart';
 
 class SpecialMaintenanceModal extends StatefulWidget {
   final SpecialMaintenanceRecord? editingRecord;
@@ -252,7 +253,7 @@ class _SpecialMaintenanceModalState extends State<SpecialMaintenanceModal> {
         try {
           // Get auth token
           final prefs = await SharedPreferences.getInstance();
-          final token = prefs.getString('token') ?? '';
+          final token = prefs.getString(AppConstants.tokenKey) ?? '';
 
           if (token.isEmpty) {
             throw Exception(
@@ -260,7 +261,7 @@ class _SpecialMaintenanceModalState extends State<SpecialMaintenanceModal> {
           }
 
           // Create multipart request for your backend
-          const baseUrl = 'https://fleet-vehicle-mgmt-backend-2.onrender.com';
+          final baseUrl = AppConstants.rootUrl;
           final uri = Uri.parse('$baseUrl/api/upload/bill');
 
           // Create request

@@ -2,6 +2,8 @@
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../core/constants/app_constants.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -12,8 +14,7 @@ class ApiResponse<T> {
 }
 
 class BookingApiService {
-  static const String baseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com/api';
+  static const String baseUrl = AppConstants.baseUrl;
 
   static final BookingApiService _instance = BookingApiService._internal();
   factory BookingApiService() => _instance;
@@ -25,9 +26,14 @@ class BookingApiService {
   }
 
   // Headers for all requests
-  Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-      };
+  Future<Map<String, String>> get _headers async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(AppConstants.tokenKey) ?? '';
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
   Future<ApiResponse<List<String>>> getVehicleTypes() async {
     try {
       debugPrint('Fetching vehicle types from: $baseUrl/booking/vehicle-types');
@@ -35,7 +41,7 @@ class BookingApiService {
       final response = await client
           .get(
             Uri.parse('$baseUrl/booking/vehicle-types'),
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(const Duration(seconds: 30));
 
@@ -98,7 +104,7 @@ class BookingApiService {
       final response = await client
           .get(
             Uri.parse('$baseUrl/booking/getAll'),
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(const Duration(seconds: 30));
 
@@ -166,7 +172,7 @@ class BookingApiService {
       final response = await client
           .get(
             Uri.parse('$baseUrl/booking/dropdown/vehicleNumber'),
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(const Duration(seconds: 30));
 
@@ -220,8 +226,9 @@ class BookingApiService {
         '$baseUrl/booking/dropdown/client-supplier',
       ];
 
+      final h = await _headers;
       final responses =
-          await Future.wait(urls.map((url) => client.get(Uri.parse(url))));
+          await Future.wait(urls.map((url) => client.get(Uri.parse(url), headers: h)));
 
       Map<String, List<String>> dropdownData = {
         'vehicles': [],
@@ -396,7 +403,7 @@ class BookingApiService {
       final response = await client
           .post(
             Uri.parse('$baseUrl/booking/create'),
-            headers: _headers,
+            headers: await _headers,
             body: jsonString,
           )
           .timeout(const Duration(seconds: 30));
@@ -440,7 +447,7 @@ class BookingApiService {
       final response = await client
           .put(
             Uri.parse('$baseUrl/booking/update/$id'),
-            headers: _headers,
+            headers: await _headers,
             body: jsonEncode(bookingData),
           )
           .timeout(const Duration(seconds: 30));
@@ -509,7 +516,7 @@ class BookingApiService {
       final response = await client
           .get(
             uri,
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(const Duration(seconds: 30));
 
@@ -579,7 +586,7 @@ class BookingApiService {
       final response = await client
           .delete(
             Uri.parse('$baseUrl/booking/delete/$id'),
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(const Duration(seconds: 30));
 
@@ -617,7 +624,7 @@ class BookingApiService {
       final response = await client
           .get(
             Uri.parse('$baseUrl/booking/dropdown/vehicleNumber'),
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(const Duration(seconds: 30));
 
@@ -710,7 +717,7 @@ class BookingApiService {
       final response = await client
           .get(
             uri,
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(const Duration(seconds: 30));
 
@@ -783,7 +790,7 @@ class BookingApiService {
       final response = await client
           .get(
             uri,
-            headers: _headers,
+            headers: await _headers,
           )
           .timeout(const Duration(seconds: 30));
 

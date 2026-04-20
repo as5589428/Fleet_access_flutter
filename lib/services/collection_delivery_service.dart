@@ -4,9 +4,10 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/collection_delivery_model.dart';
+import '../core/constants/app_constants.dart';
 
 class CollectionDeliveryService {
-  static const String _baseUrl = 'https://keerainnovations.com/erpbackend/api';
+  static const String _baseUrl = AppConstants.authBaseUrl;
 
   Future<Map<String, String>> _getAuthHeaders() async {
     final prefs = await SharedPreferences.getInstance();

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/fuel_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/constants/app_constants.dart';
 import 'package:intl/intl.dart';
 import 'add_fuel_dialog.dart';
 import 'package:flutter/services.dart';
@@ -109,7 +110,7 @@ class _FuelScreenState extends State<FuelScreen> {
     }
 
     // Your Render backend base URL
-    final baseUrl = 'https://fleet-vehicle-mgmt-backend-2.onrender.com';
+    final baseUrl = AppConstants.rootUrl;
     String fullUrl;
 
     // Clean the URL
@@ -852,7 +853,7 @@ class _FuelScreenState extends State<FuelScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  DateFormat('MMM dd, yyyy • HH:mm').format(
+                                  DateFormat('MMM dd, yyyy â€¢ HH:mm').format(
                                       entry.createdAt ?? DateTime.now()),
                                   style: TextStyle(
                                     fontSize: 10,

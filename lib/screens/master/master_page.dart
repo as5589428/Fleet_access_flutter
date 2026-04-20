@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../core/constants/app_constants.dart';
 
 
 class VehicleMasterScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class VehicleMasterScreen extends StatefulWidget {
 
 class _VehicleMasterScreenState extends State<VehicleMasterScreen>
     with SingleTickerProviderStateMixin {
-  final String baseUrl = 'https://fleet-vehicle-mgmt-backend-2.onrender.com';
+  final String baseUrl = AppConstants.baseUrl;
 
   List<VehicleModel> vehicles = [];
   List<VehicleModel> filteredVehicles = [];
@@ -144,10 +145,10 @@ class _VehicleMasterScreenState extends State<VehicleMasterScreen>
         if (sortColumn != null) 'order': sortAscending ? 'asc' : 'desc',
       };
 
-      final uri = Uri.parse('$baseUrl/api/vehicles/list')
+      final uri = Uri.parse('$baseUrl/vehicles/list')
           .replace(queryParameters: queryParams);
 
-      debugPrint('📡 Loading vehicles from: $uri');
+      debugPrint('ðŸ“¡ Loading vehicles from: $uri');
 
       final response = await http.get(
         uri,
@@ -165,7 +166,7 @@ class _VehicleMasterScreenState extends State<VehicleMasterScreen>
             try {
               parsedVehicles.add(VehicleModel.fromJsonManual(item));
             } catch (e) {
-              debugPrint('❌ Error parsing vehicle: $e');
+              debugPrint('âŒ Error parsing vehicle: $e');
             }
           }
 
@@ -184,13 +185,13 @@ class _VehicleMasterScreenState extends State<VehicleMasterScreen>
             }
           });
 
-          debugPrint('✅ Loaded ${vehicles.length} vehicles');
+          debugPrint('âœ… Loaded ${vehicles.length} vehicles');
         }
       } else {
         throw Exception('Failed to load vehicles');
       }
     } catch (e) {
-      debugPrint('❌ Error: $e');
+      debugPrint('âŒ Error: $e');
       _showSnackBar('Error loading vehicles', isError: true);
     } finally {
       if (mounted) {
@@ -286,7 +287,7 @@ class _VehicleMasterScreenState extends State<VehicleMasterScreen>
               Navigator.pop(context);
               try {
                 final response = await http.delete(
-                  Uri.parse('$baseUrl/api/vehicles/delete?id=${vehicle.id}'),
+                  Uri.parse('$baseUrl/vehicles/delete?id=${vehicle.id}'),
                 );
 
                 if (response.statusCode == 200) {
@@ -932,7 +933,7 @@ class _VehicleMasterScreenState extends State<VehicleMasterScreen>
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${vehicle.brand} ${vehicle.model} • ${vehicle.vehicleType}',
+                            '${vehicle.brand} ${vehicle.model} â€¢ ${vehicle.vehicleType}',
                             style: TextStyle(
                                 color: Colors.grey[600], fontSize: 12),
                           ),

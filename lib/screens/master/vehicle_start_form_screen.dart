@@ -102,7 +102,11 @@ class _VehicleStartFormScreenState extends State<VehicleStartFormScreen> {
     }
 
     try {
-      final List<XFile> images = await _picker.pickMultiImage();
+      final List<XFile> images = await _picker.pickMultiImage(
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
       if (images.isNotEmpty) {
         setState(() {
           int availableSlots = 5 - _startPhotos.length;
@@ -117,7 +121,12 @@ class _VehicleStartFormScreenState extends State<VehicleStartFormScreen> {
 
   Future<void> _pickSingleImage(String type) async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
       if (image != null) {
         setState(() {
           if (type == 'edit') {

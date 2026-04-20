@@ -1,13 +1,16 @@
 // lib/core/constants/app_constants.dart
 class AppConstants {
   static const String appName = 'Hitech';
-  static const String baseUrl = 'https://keerainnovations.com/erpbackend/api';
+  static const String rootUrl = 'https://fleet-access.cms-desk.in';
+  static const String baseUrl = 'https://fleet-access.cms-desk.in/api';
+  static const String authBaseUrl = 'https://keerainnovations.com/erpbackend/api';
   
   // Storage Keys
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
   static const String roleKey = 'user_role';
   static const String permissionsKey = 'auth_permissions';
+  static const String userIdKey = 'user_id';
   
   // Routes
   static const String splashRoute = '/';

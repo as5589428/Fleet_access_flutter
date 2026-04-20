@@ -599,8 +599,8 @@ class _VehicleFormPageState extends State<VehicleFormPage> {
       var request = http.MultipartRequest(
         widget.isEditing ? 'PUT' : 'POST',
         Uri.parse(widget.isEditing
-            ? '${widget.baseUrl}/api/vehicles/update/${widget.vehicle is VehicleModel ? widget.vehicle.id : widget.vehicle['_id']}'
-            : '${widget.baseUrl}/api/vehicles/create'),
+            ? '${widget.baseUrl}/vehicles/update/${widget.vehicle is VehicleModel ? widget.vehicle.id : widget.vehicle['_id']}'
+            : '${widget.baseUrl}/vehicles/create'),
       );
 
       // Generate vehicle_id for new vehicles

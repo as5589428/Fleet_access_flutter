@@ -3,14 +3,14 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../core/constants/app_constants.dart';
 
 class SpecialMaintenanceService {
-  static const String _baseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com/api';
+  static const String _baseUrl = AppConstants.baseUrl;
 
   Future<Map<String, String>> _getAuthHeaders() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
+    final token = prefs.getString(AppConstants.tokenKey) ?? '';
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',

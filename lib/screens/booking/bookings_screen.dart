@@ -5,6 +5,7 @@ import 'dart:convert';
 import '../../services/booking_api_service.dart';
 import '../../models/vehicle_model.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/constants/app_constants.dart';
 
 // Traveler class
 class Traveler {
@@ -58,8 +59,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   final BookingApiService _apiService = BookingApiService();
   final http.Client _client = http.Client();
 
-  static const String baseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com/api';
+  static const String baseUrl = AppConstants.baseUrl;
 
   bool _isLoading = false;
   bool _isReferral = false;
@@ -276,18 +276,25 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               (v) => v.vehicleType.toLowerCase() == vehicleType.toLowerCase())
           .toList();
 
+      // Ensure unique vehicles by number
+      final uniqueFiltered = <String, Map<String, dynamic>>{};
+      for (var v in filtered) {
+        final number = v.vehicleNumber.toString().trim();
+        if (number.isNotEmpty && !uniqueFiltered.containsKey(number)) {
+          uniqueFiltered[number] = {
+            'vehicle_id': v.vehicleId,
+            'vehicle_number': number,
+            'vehicle_type': v.vehicleType,
+            'booking_color_code': v.status,
+            'status': v.status,
+            'seating_capacity': v.seatingCapacity,
+            'alerts': v.alerts,
+          };
+        }
+      }
+
       setState(() {
-        _filteredVehicles = filtered
-            .map((v) => {
-                  'vehicle_id': v.vehicleId,
-                  'vehicle_number': v.vehicleNumber,
-                  'vehicle_type': v.vehicleType,
-                  'booking_color_code': v.status,
-                  'status': v.status,
-                  'seating_capacity': v.seatingCapacity,
-                  'alerts': v.alerts,
-                })
-            .toList();
+        _filteredVehicles = uniqueFiltered.values.toList();
       });
 
       debugPrint('Found ${filtered.length} vehicles for type: $vehicleType');
@@ -764,7 +771,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Booking not allowed — Vehicle status GREY',
+                'Booking not allowed â€” Vehicle status GREY',
                 style: const TextStyle(fontSize: 14),
               ),
             ),
@@ -810,53 +817,54 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
   }
 
   void _onVehicleSelected(String? vehicleNumber) {
+    if (vehicleNumber == null || vehicleNumber.isEmpty) return;
+
     setState(() {
-      _vehicleNumberController.text = vehicleNumber ?? '';
+      _vehicleNumberController.text = vehicleNumber.trim();
       _selectedVehicle = null;
       _travelers.clear();
       _capacityError = '';
       _loadingVehicleInfo = true;
-      _isVehicleSelected = vehicleNumber != null && vehicleNumber.isNotEmpty;
+      _isVehicleSelected = true; // Set to true immediately when a number is provided
     });
 
-    if (vehicleNumber != null && vehicleNumber.isNotEmpty) {
-      // Find the selected vehicle from filtered vehicles
-      final vehicleData = _filteredVehicles.firstWhere(
-        (v) => v['vehicle_number'] == vehicleNumber,
-        orElse: () => {},
-      );
+    // Find the selected vehicle from filtered vehicles
+    final vehicleData = _filteredVehicles.firstWhere(
+      (v) => v['vehicle_number'].toString().trim() == vehicleNumber.trim(),
+      orElse: () => {},
+    );
 
-      if (vehicleData.isNotEmpty) {
-        final vehicle = VehicleModel.fromJson({
-          '_id': vehicleData['vehicle_id'] ?? '',
-          'vehicle_id': vehicleData['vehicle_id'] ?? '',
-          'vehicle_number': vehicleData['vehicle_number'] ?? '',
-          'vehicle_type': vehicleData['vehicle_type'] ?? '',
-          'status': vehicleData['booking_color_code'] ?? 'green',
-          'seating_capacity': vehicleData['seating_capacity'] ?? '4',
-          'alerts': vehicleData['alerts'] ?? [],
-        });
+    if (vehicleData.isNotEmpty) {
+      final vehicle = VehicleModel.fromJson({
+        '_id': vehicleData['vehicle_id'] ?? '',
+        'vehicle_id': vehicleData['vehicle_id'] ?? '',
+        'vehicle_number': vehicleData['vehicle_number'] ?? vehicleNumber,
+        'vehicle_type': vehicleData['vehicle_type'] ?? _selectedVehicleType ?? '',
+        'status': vehicleData['booking_color_code'] ?? 'green',
+        'seating_capacity': vehicleData['seating_capacity'] ?? '4',
+        'alerts': vehicleData['alerts'] ?? [],
+      });
 
+      if (mounted) {
         setState(() {
           _selectedVehicle = vehicle;
           _vehicleTypeController.text = vehicle.vehicleType;
+          _isVehicleSelected = true;
           _loadingVehicleInfo = false;
         });
+      }
 
-        // Show warning for grey vehicles
-        if (vehicle.status.toLowerCase() == 'grey' ||
-            vehicle.status.toLowerCase() == 'gray') {
-          _showGreyVehicleInfo(vehicle.vehicleNumber);
-        }
-      } else {
+      // Show warning for grey vehicles
+      if (vehicle.status.toLowerCase() == 'grey' ||
+          vehicle.status.toLowerCase() == 'gray') {
+        _showGreyVehicleInfo(vehicle.vehicleNumber);
+      }
+    } else {
+      if (mounted) {
         setState(() {
           _loadingVehicleInfo = false;
         });
       }
-    } else {
-      setState(() {
-        _loadingVehicleInfo = false;
-      });
     }
   }
 
@@ -976,7 +984,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     if (_selectedVehicle != null &&
         (_selectedVehicle!.status.toLowerCase() == 'grey' ||
             _selectedVehicle!.status.toLowerCase() == 'gray')) {
-      return 'Booking not allowed — Vehicle status GREY';
+      return 'Booking not allowed â€” Vehicle status GREY';
     }
 
     if (_bookingType == 'office') {
@@ -1080,7 +1088,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
     if (_selectedVehicle != null &&
         (_selectedVehicle!.status.toLowerCase() == 'grey' ||
             _selectedVehicle!.status.toLowerCase() == 'gray')) {
-      _showValidationAlert('Booking not allowed — Vehicle status GREY');
+      _showValidationAlert('Booking not allowed â€” Vehicle status GREY');
       return;
     }
 
@@ -1327,7 +1335,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                         children: [
                           // Vehicle & Booking Information Card
                           _buildSectionCard(
-                            title: '🚗 Vehicle & Booking Information',
+                            title: 'ðŸš— Vehicle & Booking Information',
                             children: [
                               const SizedBox(height: 16),
 
@@ -1418,7 +1426,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
 
                           // Booking Type Card
                           _buildSectionCard(
-                            title: '📋 Booking Type *',
+                            title: 'ðŸ“‹ Booking Type *',
                             children: [
                               const SizedBox(height: 16),
                               Row(
@@ -1801,96 +1809,106 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
               icon: const Icon(Icons.arrow_drop_down),
               isExpanded: true,
               hint: const Text('Choose a vehicle number...'),
-              items: _filteredVehicles.map((vehicle) {
-                final status =
-                    vehicle['booking_color_code']?.toString().toLowerCase() ??
-                        vehicle['status']?.toString().toLowerCase() ??
-                        'green';
-                final vehicleNumber =
-                    vehicle['vehicle_number']?.toString() ?? '';
+              // Ensure items are unique by vehicle_number to prevent crashes
+              items: () {
+                final seen = <String>{};
+                return _filteredVehicles.where((v) {
+                  final number = v['vehicle_number']?.toString() ?? '';
+                  if (number.isEmpty || seen.contains(number)) return false;
+                  seen.add(number);
+                  return true;
+                }).map((vehicle) {
+                  final status =
+                      vehicle['booking_color_code']?.toString().toLowerCase() ??
+                          vehicle['status']?.toString().toLowerCase() ??
+                          'green';
+                  final vehicleNumber =
+                      vehicle['vehicle_number']?.toString() ?? '';
 
-                // Determine status text and color
-                String statusText = 'Available';
-                Color statusColor = Colors.green;
-                Color textColor = Colors.green;
-                bool isEnabled = true;
+                  // Determine status text and color
+                  String statusText = 'Available';
+                  Color statusColor = Colors.green;
+                  Color textColor = Colors.green;
+                  bool isEnabled = true;
 
-                if (status == 'red') {
-                  statusText = 'Unavailable';
-                  statusColor = Colors.red;
-                  textColor = Colors.red;
-                  isEnabled = false;
-                } else if (status == 'orange') {
-                  statusText = 'Maintenance';
-                  statusColor = Colors.orange;
-                  textColor = Colors.orange;
-                  isEnabled = false;
-                } else if (status == 'grey' || status == 'gray') {
-                  statusText = 'Booked';
-                  statusColor = Colors.grey;
-                  textColor = Colors.grey;
-                  isEnabled = true;
-                } else if (status == 'green') {
-                  statusText = 'Available';
-                  statusColor = Colors.green;
-                  textColor = Colors.green;
-                  isEnabled = true;
-                }
+                  if (status == 'red') {
+                    statusText = 'Unavailable';
+                    statusColor = Colors.red;
+                    textColor = Colors.red;
+                    isEnabled = false;
+                  } else if (status == 'orange') {
+                    statusText = 'Maintenance';
+                    statusColor = Colors.orange;
+                    textColor = Colors.orange;
+                    isEnabled = false;
+                  } else if (status == 'grey' || status == 'gray') {
+                    statusText = 'Booked';
+                    statusColor = Colors.grey;
+                    textColor = Colors.grey;
+                    isEnabled = true;
+                  } else {
+                    statusText = 'Available';
+                    statusColor = Colors.green;
+                    textColor = Colors.green;
+                    isEnabled = true;
+                  }
 
-                return DropdownMenuItem<String>(
-                  value: vehicleNumber,
-                  enabled: isEnabled,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: statusColor,
+                  return DropdownMenuItem<String>(
+                    value: vehicleNumber,
+                    enabled: isEnabled,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: statusColor,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: RichText(
-                          overflow: TextOverflow.ellipsis,
-                          text: TextSpan(
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isEnabled ? Colors.black : Colors.grey,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: RichText(
+                            overflow: TextOverflow.ellipsis,
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isEnabled ? Colors.black : Colors.grey,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: vehicleNumber,
+                                  style: TextStyle(
+                                    color: isEnabled ? textColor : Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ' ($statusText)',
+                                  style: TextStyle(
+                                    color:
+                                        isEnabled ? statusColor : Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
-                            children: [
-                              TextSpan(
-                                text: vehicleNumber,
-                                style: TextStyle(
-                                  color: isEnabled ? textColor : Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              TextSpan(
-                                text: ' ($statusText)',
-                                style: TextStyle(
-                                  color: isEnabled ? statusColor : Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
                           ),
                         ),
-                      ),
-                      if (!isEnabled)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Icon(
-                            Icons.block,
-                            size: 16,
-                            color: Colors.grey.shade400,
+                        if (!isEnabled)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Icon(
+                              Icons.block,
+                              size: 16,
+                              color: Colors.grey.shade400,
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                );
-              }).toList(),
+                      ],
+                    ),
+                  );
+                }).toList();
+              }(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
                   _checkVehicleAvailabilityAndSelect(newValue);
@@ -1962,7 +1980,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? selectedColor.withValues(alpha: 0.1) : Colors.white,
+          color:
+              isSelected ? selectedColor.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? selectedColor : Colors.grey.shade300,
@@ -2168,7 +2187,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
 
   Widget _buildOfficeBookingFields() {
     return _buildSectionCard(
-      title: '🏢 Office Booking Details',
+      title: 'ðŸ¢ Office Booking Details',
       children: [
         const SizedBox(height: 16),
 
@@ -2232,7 +2251,8 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
                             _selectedCustomers.remove(customer);
                           });
                         },
-                        backgroundColor: AppTheme.secondary.withValues(alpha: 0.1),
+                        backgroundColor:
+                            AppTheme.secondary.withValues(alpha: 0.1),
                       );
                     }).toList(),
                   )
@@ -2385,7 +2405,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
 
   Widget _buildPersonalBookingFields() {
     return _buildSectionCard(
-      title: '🏠 Personal Booking Details',
+      title: 'ðŸ  Personal Booking Details',
       children: [
         const SizedBox(height: 16),
         TextFormField(
@@ -2418,7 +2438,7 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
 
   Widget _buildTravelerManagementCard() {
     return _buildSectionCard(
-      title: '👥 Traveler Management',
+      title: 'ðŸ‘¥ Traveler Management',
       children: [
         const SizedBox(height: 16),
 
@@ -2727,12 +2747,19 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       ),
-      items: _employees.map((employee) {
-        return DropdownMenuItem<String>(
-          value: employee,
-          child: Text(employee),
-        );
-      }).toList(),
+      items: () {
+        final seen = <String>{};
+        return _employees.where((employee) {
+          if (employee.isEmpty || seen.contains(employee)) return false;
+          seen.add(employee);
+          return true;
+        }).map((employee) {
+          return DropdownMenuItem<String>(
+            value: employee,
+            child: Text(employee),
+          );
+        }).toList();
+      }(),
       onChanged: (value) {
         setState(() {
           _selectedEmployee = value ?? '';
@@ -2753,15 +2780,23 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       ),
-      items: (_roles.isNotEmpty
-              ? _roles
-              : ['driver', 'passenger', 'driver & traveler'])
-          .map((role) {
-        return DropdownMenuItem<String>(
-          value: role.toLowerCase(),
-          child: Text(role),
-        );
-      }).toList(),
+      items: () {
+        final seen = <String>{};
+        return (_roles.isNotEmpty
+                ? _roles
+                : ['driver', 'passenger', 'driver & traveler'])
+            .where((role) {
+          final r = role.toLowerCase();
+          if (r.isEmpty || seen.contains(r)) return false;
+          seen.add(r);
+          return true;
+        }).map((role) {
+          return DropdownMenuItem<String>(
+            value: role.toLowerCase(),
+            child: Text(role),
+          );
+        }).toList();
+      }(),
       onChanged: (value) {
         if (value != null) {
           setState(() {

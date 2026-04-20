@@ -4,7 +4,7 @@ import '../models/user_model.dart';
 import 'api_service.dart';
 
 class AuthService {
-  final ApiService _apiService = ApiService.instance;
+  final ApiService _apiService = ApiService.authInstance;
 
   Future<Map<String, dynamic>> login(String employeeCode, String password) async {
     try {

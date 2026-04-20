@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../core/constants/app_constants.dart';
 
 class ApiResponse<T> {
   final bool success;
@@ -12,8 +13,7 @@ class ApiResponse<T> {
 }
 
 class ServiceHistoryService {
-  static const String baseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com/api';
+  static const String baseUrl = AppConstants.baseUrl;
   static final ServiceHistoryService _instance =
       ServiceHistoryService._internal();
   factory ServiceHistoryService() => _instance;

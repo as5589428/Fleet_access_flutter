@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../core/constants/app_constants.dart';
 
 class GeneralMaintenanceRecord {
   final String id;
@@ -204,8 +205,7 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _usersFullData = [];
 
   // API Configuration - Using single base URL like React
-  static const String _baseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com';
+  static const String _baseUrl = AppConstants.baseUrl;
   static const Map<String, String> _headers = {
     'Content-Type': 'application/json',
   };
@@ -304,25 +304,25 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
   String _getMaintenanceEndpoint(String? maintenanceType) {
     switch (maintenanceType) {
       case "general":
-        return "/api/maintenance/general";
+        return "/maintenance/general";
       case "battery":
       case "batery":
-        return "/api/maintenance/battery";
+        return "/maintenance/battery";
       case "wheel_balancing":
-        return "/api/maintenance/wheel-balancing";
+        return "/maintenance/wheel-balancing";
       case "tyre":
-        return "/api/maintenance/tyre";
+        return "/maintenance/tyre";
       default:
-        return "/api/maintenance/general";
+        return "/maintenance/general";
     }
   }
 
   // ==================== MAINTENANCE TYPES API ====================
 
   Future<List<String>> getMaintenanceTypes() async {
-    debugPrint('🔵 Fetching maintenance types from API...');
-    final url = '$_baseUrl/api/maintenance/maintenance-types';
-    debugPrint('📡 Full URL: $url');
+    debugPrint('ðŸ”µ Fetching maintenance types from API...');
+    final url = '$_baseUrl/maintenance/maintenance-types';
+    debugPrint('ðŸ“¡ Full URL: $url');
 
     try {
       final response = await http.get(
@@ -330,8 +330,8 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
         headers: _headers,
       );
 
-      debugPrint('📡 Response status: ${response.statusCode}');
-      debugPrint('📡 Response body: ${response.body}');
+      debugPrint('ðŸ“¡ Response status: ${response.statusCode}');
+      debugPrint('ðŸ“¡ Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -342,20 +342,20 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
           final dataList = data['data'];
           if (dataList is List) {
             types = dataList.map((item) => item.toString()).toList();
-            debugPrint('✅ Successfully fetched maintenance types: $types');
+            debugPrint('âœ… Successfully fetched maintenance types: $types');
             return types;
           }
         } else if (data['status'] == "success" && data['data'] is List) {
           types = List<String>.from(data['data']);
-          debugPrint('✅ Successfully fetched maintenance types: $types');
+          debugPrint('âœ… Successfully fetched maintenance types: $types');
           return types;
         }
       }
 
-      debugPrint('⚠️ Using default maintenance types');
+      debugPrint('âš ï¸ Using default maintenance types');
       return ["general", "battery", "wheel_balancing", "tyre"];
     } catch (e) {
-      debugPrint('❌ Error fetching maintenance types: $e');
+      debugPrint('âŒ Error fetching maintenance types: $e');
       return ["general", "battery", "wheel_balancing", "tyre"];
     }
   }
@@ -371,22 +371,22 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
     _vehicleNumbersFullData = [];
     notifyListeners();
 
-    debugPrint('🔵 Starting to load dropdown data...');
+    debugPrint('ðŸ”µ Starting to load dropdown data...');
 
     try {
       // Load vehicle numbers
       debugPrint(
-          '📡 Fetching vehicle numbers from: $_baseUrl/api/booking/dropdown/vehicleNumber');
+          'ðŸ“¡ Fetching vehicle numbers from: $_baseUrl/booking/dropdown/vehicleNumber');
       final vehicleResponse = await http.get(
-        Uri.parse('$_baseUrl/api/booking/dropdown/vehicleNumber'),
+        Uri.parse('$_baseUrl/booking/dropdown/vehicleNumber'),
         headers: _headers,
       );
 
-      debugPrint('📡 Vehicle response status: ${vehicleResponse.statusCode}');
+      debugPrint('ðŸ“¡ Vehicle response status: ${vehicleResponse.statusCode}');
 
       if (vehicleResponse.statusCode == 200) {
         final vehicleData = json.decode(vehicleResponse.body);
-        debugPrint('📡 Vehicle response body: $vehicleData');
+        debugPrint('ðŸ“¡ Vehicle response body: $vehicleData');
 
         if (vehicleData is Map && vehicleData.containsKey('data')) {
           final vehicleList = vehicleData['data'];
@@ -410,31 +410,31 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
                     'booking_color_code': bookingColorCode ?? '',
                   });
                   debugPrint(
-                      '✅ Added vehicle: $vehicleNumber with color: $bookingColorCode');
+                      'âœ… Added vehicle: $vehicleNumber with color: $bookingColorCode');
                 }
               }
             }
 
             _vehicleNumbers = uniqueVehicles.toList()..sort();
-            debugPrint('✅ Total vehicles loaded: ${_vehicleNumbers.length}');
+            debugPrint('âœ… Total vehicles loaded: ${_vehicleNumbers.length}');
           }
         }
       } else {
-        debugPrint('❌ Failed to load vehicles: ${vehicleResponse.statusCode}');
+        debugPrint('âŒ Failed to load vehicles: ${vehicleResponse.statusCode}');
       }
 
       // Load users
-      debugPrint('📡 Fetching users from: $_baseUrl/api/booking/dropdown/users');
+      debugPrint('ðŸ“¡ Fetching users from: $_baseUrl/booking/dropdown/users');
       final usersResponse = await http.get(
-        Uri.parse('$_baseUrl/api/booking/dropdown/users'),
+        Uri.parse('$_baseUrl/booking/dropdown/users'),
         headers: _headers,
       );
 
-      debugPrint('📡 Users response status: ${usersResponse.statusCode}');
+      debugPrint('ðŸ“¡ Users response status: ${usersResponse.statusCode}');
 
       if (usersResponse.statusCode == 200) {
         final usersData = json.decode(usersResponse.body);
-        debugPrint('📡 Users response body: $usersData');
+        debugPrint('ðŸ“¡ Users response body: $usersData');
 
         if (usersData is Map && usersData.containsKey('data')) {
           final usersList = usersData['data'];
@@ -453,7 +453,7 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
                       'user_name': userName,
                       'user_id': userId,
                     });
-                    debugPrint('✅ Added user: $userName with ID: $userId');
+                    debugPrint('âœ… Added user: $userName with ID: $userId');
                   }
                 } else if (item is String) {
                   final trimmed = item.trim();
@@ -463,29 +463,29 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
                       'user_name': trimmed,
                       'user_id': '',
                     });
-                    debugPrint('✅ Added user: $trimmed');
+                    debugPrint('âœ… Added user: $trimmed');
                   }
                 }
               }
             }
 
             _users = uniqueUserNames.toList()..sort();
-            debugPrint('✅ Total users loaded: ${_users.length}');
+            debugPrint('âœ… Total users loaded: ${_users.length}');
           }
         }
       } else {
-        debugPrint('❌ Failed to load users: ${usersResponse.statusCode}');
+        debugPrint('âŒ Failed to load users: ${usersResponse.statusCode}');
       }
 
       // Fetch maintenance types
       await getMaintenanceTypes();
     } catch (e) {
       _error = 'Failed to load dropdown data: $e';
-      debugPrint('❌ Error in loadDropdownData: $e');
+      debugPrint('âŒ Error in loadDropdownData: $e');
     } finally {
       _dropdownLoading = false;
       notifyListeners();
-      debugPrint('🔵 Finished loading dropdown data');
+      debugPrint('ðŸ”µ Finished loading dropdown data');
     }
   }
 
@@ -498,7 +498,7 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
 
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/maintenance/general'),
+        Uri.parse('$_baseUrl/maintenance/general'),
         headers: _headers,
       );
 
@@ -540,9 +540,9 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
       final endpoint = _getMaintenanceEndpoint(maintenanceType);
       final url = '$_baseUrl$endpoint';
 
-      debugPrint('🔵 Adding maintenance record...');
-      debugPrint('📡 URL: $url');
-      debugPrint('📦 Maintenance Type: $maintenanceType');
+      debugPrint('ðŸ”µ Adding maintenance record...');
+      debugPrint('ðŸ“¡ URL: $url');
+      debugPrint('ðŸ“¦ Maintenance Type: $maintenanceType');
 
       // Build payload matching React structure
       final Map<String, dynamic> payload = {
@@ -614,7 +614,7 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
       // Remove any null values
       payload.removeWhere((key, value) => value == null);
 
-      debugPrint('📦 Final Payload:');
+      debugPrint('ðŸ“¦ Final Payload:');
       payload.forEach((key, value) {
         debugPrint('   $key: $value');
       });
@@ -625,8 +625,8 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
         body: json.encode(payload),
       );
 
-      debugPrint('📡 Response status: ${response.statusCode}');
-      debugPrint('📡 Response body: ${response.body}');
+      debugPrint('ðŸ“¡ Response status: ${response.statusCode}');
+      debugPrint('ðŸ“¡ Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
@@ -665,9 +665,9 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
       final endpoint = _getMaintenanceEndpoint(maintenanceType);
       final url = '$_baseUrl$endpoint/$recordId';
 
-      debugPrint('🔵 Updating maintenance record: $recordId');
-      debugPrint('📡 URL: $url');
-      debugPrint('📦 Maintenance Type: $maintenanceType');
+      debugPrint('ðŸ”µ Updating maintenance record: $recordId');
+      debugPrint('ðŸ“¡ URL: $url');
+      debugPrint('ðŸ“¦ Maintenance Type: $maintenanceType');
 
       final Map<String, dynamic> payload = {
         'vehicle_id': _formData['vehicle_id']?.toString() ?? '',
@@ -736,7 +736,7 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
 
       payload.removeWhere((key, value) => value == null);
 
-      debugPrint('📦 Final Payload:');
+      debugPrint('ðŸ“¦ Final Payload:');
       payload.forEach((key, value) {
         debugPrint('   $key: $value');
       });
@@ -747,8 +747,8 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
         body: json.encode(payload),
       );
 
-      debugPrint('📡 Response status: ${response.statusCode}');
-      debugPrint('📡 Response body: ${response.body}');
+      debugPrint('ðŸ“¡ Response status: ${response.statusCode}');
+      debugPrint('ðŸ“¡ Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -790,15 +790,15 @@ class GeneralMaintenanceProvider extends ChangeNotifier {
       final endpoint = _getMaintenanceEndpoint(maintenanceType);
       final url = '$_baseUrl$endpoint/$recordId';
 
-      debugPrint('🔵 Deleting maintenance record: $recordId');
-      debugPrint('📡 URL: $url');
+      debugPrint('ðŸ”µ Deleting maintenance record: $recordId');
+      debugPrint('ðŸ“¡ URL: $url');
 
       final response = await http.delete(
         Uri.parse(url),
         headers: _headers,
       );
 
-      debugPrint('📡 Response status: ${response.statusCode}');
+      debugPrint('ðŸ“¡ Response status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         _records.removeWhere((record) => record.id == recordId);

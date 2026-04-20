@@ -1,13 +1,12 @@
-// dashboard_api_service.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../models/dashboard_model.dart';
 import '../models/vehicle_model.dart';
+import '../core/constants/app_constants.dart';
 
 class DashboardApiService {
-  static const String baseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com/api';
+  static const String baseUrl = AppConstants.baseUrl;
 
   final String? authToken;
 

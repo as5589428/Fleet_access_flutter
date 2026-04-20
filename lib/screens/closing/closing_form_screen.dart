@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../../models/closing_model.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/constants/app_constants.dart';
 
 class ClosingPage extends StatefulWidget {
   final ClosingRecord? editingRecord;
@@ -54,7 +55,7 @@ class _ClosingPageState extends State<ClosingPage> {
   String? _vehicleId;
 
   final ImagePicker _picker = ImagePicker();
-  final String _apiBase = "https://fleet-vehicle-mgmt-backend-2.onrender.com";
+  final String _apiBase = AppConstants.rootUrl;
 
   @override
   void initState() {

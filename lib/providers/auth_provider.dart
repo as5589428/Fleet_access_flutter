@@ -66,6 +66,7 @@ class AuthProvider extends ChangeNotifier {
 
         await prefs.setString(AppConstants.userKey, jsonEncode(_user!.toJson()));
         await prefs.setString(AppConstants.roleKey, _user!.role);
+        await prefs.setString(AppConstants.userIdKey, _user!.id);
         
         if (result['permissions'] != null) {
           await prefs.setString(AppConstants.permissionsKey, jsonEncode(result['permissions']));
