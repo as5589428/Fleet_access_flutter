@@ -103,9 +103,9 @@ class _VehicleStartFormScreenState extends State<VehicleStartFormScreen> {
 
     try {
       final List<XFile> images = await _picker.pickMultiImage(
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 30,
       );
       if (images.isNotEmpty) {
         setState(() {
@@ -123,9 +123,9 @@ class _VehicleStartFormScreenState extends State<VehicleStartFormScreen> {
     try {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 80,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 30,
       );
       if (image != null) {
         setState(() {

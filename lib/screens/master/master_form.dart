@@ -1111,9 +1111,9 @@ class _VehicleFormPageState extends State<VehicleFormPage> {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 30,
       );
       if (image == null) return;
       if (!mounted) return;
