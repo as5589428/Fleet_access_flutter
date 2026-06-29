@@ -5,10 +5,11 @@ import '../core/constants/app_constants.dart';
 class ApiService {
   late Dio _dio;
   static ApiService? _instance;
+  static ApiService? _authInstance;
 
-  ApiService._internal() {
+  ApiService._internal({String? baseUrl}) {
     _dio = Dio(BaseOptions(
-      baseUrl: AppConstants.baseUrl,
+      baseUrl: baseUrl ?? AppConstants.baseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {
@@ -39,6 +40,11 @@ class ApiService {
   static ApiService get instance {
     _instance ??= ApiService._internal();
     return _instance!;
+  }
+
+  static ApiService get authInstance {
+    _authInstance ??= ApiService._internal(baseUrl: AppConstants.authBaseUrl);
+    return _authInstance!;
   }
 
   Future<void> _clearAuthData() async {

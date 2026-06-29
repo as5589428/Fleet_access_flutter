@@ -599,8 +599,8 @@ class _VehicleFormPageState extends State<VehicleFormPage> {
       var request = http.MultipartRequest(
         widget.isEditing ? 'PUT' : 'POST',
         Uri.parse(widget.isEditing
-            ? '${widget.baseUrl}/api/vehicles/update/${widget.vehicle is VehicleModel ? widget.vehicle.id : widget.vehicle['_id']}'
-            : '${widget.baseUrl}/api/vehicles/create'),
+            ? '${widget.baseUrl}/vehicles/update/${widget.vehicle is VehicleModel ? widget.vehicle.id : widget.vehicle['_id']}'
+            : '${widget.baseUrl}/vehicles/create'),
       );
 
       // Generate vehicle_id for new vehicles
@@ -1111,9 +1111,9 @@ class _VehicleFormPageState extends State<VehicleFormPage> {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 30,
       );
       if (image == null) return;
       if (!mounted) return;

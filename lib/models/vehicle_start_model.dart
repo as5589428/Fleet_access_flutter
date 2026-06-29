@@ -108,11 +108,36 @@ class VehicleDropdownModel {
     this.currentKm,
   });
 
-  factory VehicleDropdownModel.fromJson(Map<String, dynamic> json) {
-    return VehicleDropdownModel(
-      id: json['_id'] ?? json['id'],
-      vehicleNumber: json['vehicle_number'],
-      currentKm: json['current_km']?.toString(),
-    );
+  factory VehicleDropdownModel.fromJson(dynamic json) {
+    if (json is String) {
+      return VehicleDropdownModel(
+        id: json,
+        vehicleNumber: json,
+        currentKm: '',
+      );
+    }
+    
+    if (json is Map<String, dynamic>) {
+      return VehicleDropdownModel(
+        id: json['_id']?.toString() ?? json['id']?.toString(),
+        vehicleNumber: json['vehicle_number']?.toString() ?? 
+                       json['vehicleNumber']?.toString() ?? 
+                       json['vehicle_id']?.toString() ?? '',
+        currentKm: json['current_km']?.toString() ?? 
+                   json['currentKm']?.toString() ?? '',
+      );
+    }
+    
+    return VehicleDropdownModel(vehicleNumber: 'Unknown');
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is VehicleDropdownModel &&
+          runtimeType == other.runtimeType &&
+          vehicleNumber == other.vehicleNumber;
+
+  @override
+  int get hashCode => vehicleNumber.hashCode;
 }

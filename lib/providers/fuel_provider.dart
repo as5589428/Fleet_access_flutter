@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import '../models/fuel_model.dart';
+import '../core/constants/app_constants.dart';
 
 class FuelProvider extends ChangeNotifier {
   List<FuelEntry> _fuelEntries = [];
@@ -21,10 +22,8 @@ class FuelProvider extends ChangeNotifier {
   String? get error => _error;
   String? get apiError => _apiError;
 
-  static const String baseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com/api';
-  static const String vehicleBaseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com/api/booking';
+  static const String baseUrl = AppConstants.baseUrl;
+  static const String vehicleBaseUrl = '${AppConstants.baseUrl}/booking';
 
   Future<void> loadFuelEntries() async {
     _isLoading = true;
@@ -97,36 +96,34 @@ class FuelProvider extends ChangeNotifier {
         if (data is Map && data.containsKey('data')) {
           final vehicleData = data['data'];
           if (vehicleData is List) {
-            final uniqueNumbers = <String>{};
+            final List<Vehicle> loadedVehicles = [];
+            final Set<String> seenNumbers = {};
 
             for (var item in vehicleData) {
-              if (item is String && item.trim().isNotEmpty) {
-                uniqueNumbers.add(item.trim());
-              } else if (item is Map) {
-                // Handle if API returns objects
-                final dynamic vehicleNumber = item['vehicle_number'] ??
-                    item['vehicleNumber'] ??
-                    item['vehicle_id'];
-                if (vehicleNumber != null &&
-                    vehicleNumber.toString().trim().isNotEmpty) {
-                  uniqueNumbers.add(vehicleNumber.toString().trim());
+              if (item is Map<String, dynamic>) {
+                final vehicle = Vehicle.fromJson(item);
+                if (vehicle.vehicleNumber.isNotEmpty && !seenNumbers.contains(vehicle.vehicleNumber)) {
+                  loadedVehicles.add(vehicle);
+                  seenNumbers.add(vehicle.vehicleNumber);
+                }
+              } else if (item is String && item.trim().isNotEmpty) {
+                final number = item.trim();
+                if (!seenNumbers.contains(number)) {
+                  loadedVehicles.add(Vehicle(
+                    vehicleId: number,
+                    vehicleNumber: number,
+                    vehicleType: '',
+                    bookingColorCode: '',
+                    fuelType: [],
+                  ));
+                  seenNumbers.add(number);
                 }
               }
             }
 
-            _vehicles = uniqueNumbers.map((vehicleNumber) {
-              return Vehicle(
-                vehicleId: vehicleNumber, // For now, use number as ID
-                vehicleNumber: vehicleNumber,
-                vehicleType: '',
-                bookingColorCode: '',
-                fuelType: [],
-              );
-            }).toList();
-
-            _vehicles
-                .sort((a, b) => a.vehicleNumber.compareTo(b.vehicleNumber));
-            debugPrint('Loaded ${_vehicles.length} unique vehicles');
+            _vehicles = loadedVehicles;
+            _vehicles.sort((a, b) => a.vehicleNumber.compareTo(b.vehicleNumber));
+            debugPrint('Loaded ${_vehicles.length} unique vehicles with full data');
           }
         }
       } else {
@@ -211,12 +208,12 @@ class FuelProvider extends ChangeNotifier {
             contentType: contentType,
           );
           request.files.add(multipartFile);
-          debugPrint('✅ Added bill file: ${fuelBill.path}');
+          debugPrint('âœ… Added bill file: ${fuelBill.path}');
         } catch (e) {
-          debugPrint('❌ Error adding bill file: $e');
+          debugPrint('âŒ Error adding bill file: $e');
         }
       } else {
-        debugPrint('ℹ️ No bill file provided (optional)');
+        debugPrint('â„¹ï¸ No bill file provided (optional)');
       }
 
       // Print all fields being sent
@@ -228,13 +225,13 @@ class FuelProvider extends ChangeNotifier {
       debugPrint('===========================\n');
 
       // Send request
-      debugPrint('🚀 Sending POST request to: $baseUrl/fuel/create');
+      debugPrint('ðŸš€ Sending POST request to: $baseUrl/fuel/create');
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
 
-      debugPrint('📥 Response Status: ${response.statusCode}');
-      debugPrint('📥 Response Body: ${response.body}');
+      debugPrint('ðŸ“¥ Response Status: ${response.statusCode}');
+      debugPrint('ðŸ“¥ Response Body: ${response.body}');
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {
           final responseBody = response.body;
@@ -247,57 +244,44 @@ class FuelProvider extends ChangeNotifier {
           }
 
           final dynamic data = json.decode(responseBody);
-          debugPrint('✅ Success! Response data: $data');
+          debugPrint('✅ Success response! Parsing data...');
 
           if (data is Map) {
-            final dataMap = data;
+            final dataMap = Map<String, dynamic>.from(data);
+            
+            // Extract the actual fuel entry data
+            Map<String, dynamic>? entryData;
+            
+            if (dataMap.containsKey('data') && dataMap['data'] is Map) {
+              entryData = Map<String, dynamic>.from(dataMap['data']);
+            } else if (dataMap.containsKey('fuelEntry') && dataMap['fuelEntry'] is Map) {
+              entryData = Map<String, dynamic>.from(dataMap['fuelEntry']);
+            } else if (dataMap.containsKey('_id') || dataMap.containsKey('id')) {
+              // The map itself is the entry
+              entryData = dataMap;
+            }
 
-            // **FIXED: Check for "message" field indicating success**
-            if (dataMap.containsKey('message') &&
-                dataMap['message']
-                    .toString()
-                    .toLowerCase()
-                    .contains('success')) {
-              // Extract the data from response
-              if (dataMap.containsKey('data')) {
-                final dynamic responseData = dataMap['data'];
-                if (responseData is Map) {
-                  final entryData = Map<String, dynamic>.from(responseData);
-                  final newEntry = FuelEntry.fromJson(entryData);
-                  _fuelEntries.insert(0, newEntry);
-                  notifyListeners();
-                  debugPrint('✅ Fuel entry added successfully!');
-                  return true;
-                }
-              } else {
-                // If no data field, try to use the entire response
-                final entryData = Map<String, dynamic>.from(dataMap);
-                final newEntry = FuelEntry.fromJson(entryData);
-                _fuelEntries.insert(0, newEntry);
-                notifyListeners();
-                debugPrint('✅ Fuel entry added successfully!');
-                return true;
-              }
-            } else if (dataMap.containsKey('_id') ||
-                dataMap.containsKey('id')) {
-              // Direct success with entry data
-              final entryData = Map<String, dynamic>.from(dataMap);
+            if (entryData != null) {
               final newEntry = FuelEntry.fromJson(entryData);
               _fuelEntries.insert(0, newEntry);
               notifyListeners();
-              debugPrint('✅ Fuel entry added successfully!');
+              debugPrint('✅ Fuel entry added and parsed successfully!');
               return true;
             }
+
+            // Fallback: If we can't find entry data but it's 200/201, it likely succeeded
+            debugPrint('⚠️ Could not parse entry data from response, but status is success.');
+            // Refresh list to be sure
+            loadFuelEntries();
+            return true;
           }
 
-          // If we get here, response format is unexpected but status is 200/201
-          debugPrint('⚠️ Unexpected success response format: $data');
-          _apiError = 'Unexpected response format';
-          return false;
+          return true; // Assume success for 200/201 even if not a Map
         } catch (e) {
-          _apiError = 'Failed to parse response: $e';
-          debugPrint('❌ Error parsing response: $e');
-          return false;
+          debugPrint('⚠️ Error parsing success response: $e');
+          // Still return true because status was 200/201
+          loadFuelEntries();
+          return true;
         }
       } else {
         // Handle error
@@ -307,7 +291,7 @@ class FuelProvider extends ChangeNotifier {
         if (response.body.isNotEmpty) {
           if (response.body.contains('<!DOCTYPE html>')) {
             // HTML error page - backend crashed
-            debugPrint('❌ Backend server crashed with 500 error');
+            debugPrint('âŒ Backend server crashed with 500 error');
             debugPrint('This usually means:');
             debugPrint('1. Missing required field');
             debugPrint('2. Invalid data type');
@@ -338,12 +322,12 @@ class FuelProvider extends ChangeNotifier {
           }
         }
 
-        debugPrint('❌ API Error ($_apiError)');
+        debugPrint('âŒ API Error ($_apiError)');
         return false;
       }
     } catch (e) {
       _apiError = 'Failed to connect: $e';
-      debugPrint('❌ Exception: $e');
+      debugPrint('âŒ Exception: $e');
       return false;
     } finally {
       _isLoading = false;

@@ -140,6 +140,7 @@ class Vehicle {
   final String vehicleType;
   final String bookingColorCode;
   final List<String> fuelType;
+  final String? unit;
 
   Vehicle({
     required this.vehicleId,
@@ -147,18 +148,21 @@ class Vehicle {
     required this.vehicleType,
     required this.bookingColorCode,
     required this.fuelType,
+    this.unit,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
     return Vehicle(
-      vehicleId: json['vehicle_id']?.toString() ?? '',
+      vehicleId: json['vehicle_id']?.toString() ?? 
+                 json['_id']?.toString() ?? 
+                 json['id']?.toString() ?? '',
       vehicleNumber: json['vehicle_number']?.toString() ?? '',
       vehicleType: json['vehicle_type']?.toString() ?? '',
       bookingColorCode: json['booking_color_code']?.toString() ?? '',
-      fuelType: (json['fuel_type'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      fuelType: (json['fuel_type'] is List)
+          ? (json['fuel_type'] as List).map((e) => e.toString()).toList()
+          : (json['fuel_type'] != null ? [json['fuel_type'].toString()] : []),
+      unit: json['unit']?.toString() ?? json['fuel_unit']?.toString(),
     );
   }
 
@@ -169,6 +173,7 @@ class Vehicle {
       'vehicle_type': vehicleType,
       'booking_color_code': bookingColorCode,
       'fuel_type': fuelType,
+      if (unit != null) 'unit': unit,
     };
   }
 }

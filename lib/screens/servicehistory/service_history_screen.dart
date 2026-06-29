@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/service_history_provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/constants/app_constants.dart';
 
 class ServiceHistoryScreen extends StatefulWidget {
   const ServiceHistoryScreen({super.key});
@@ -947,11 +948,11 @@ class _ServiceHistoryScreenState extends State<ServiceHistoryScreen> {
     // Check if it's a local file path or a relative path
     if (imagePath.startsWith('/') || imagePath.contains('storage')) {
       // Construct full URL for uploaded images
-      return 'https://fleet-vehicle-mgmt-backend-2.onrender.com/${imagePath.replaceFirst('undefined/', '')}';
+      return '${AppConstants.rootUrl}/${imagePath.replaceFirst('undefined/', '')}';
     }
 
     // If it's just a filename, construct the full URL
-    return 'https://fleet-vehicle-mgmt-backend-2.onrender.com/storage/$imagePath';
+    return '${AppConstants.rootUrl}/storage/$imagePath';
   }
 
   Widget _buildLoadingState() {

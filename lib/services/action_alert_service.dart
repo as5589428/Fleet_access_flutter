@@ -1,9 +1,10 @@
 import '../models/action_alert_model.dart';
 import 'api_service.dart';
+import '../core/constants/app_constants.dart';
 
 class ActionAlertService {
   final ApiService _api = ApiService.instance;
-  final String _baseUrl = 'https://fleet-vehicle-mgmt-backend-2.onrender.com/api';
+  final String _baseUrl = AppConstants.baseUrl;
 
   Future<List<ActionAlert>> getAlerts() async {
     try {

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/closing_model.dart';
+import '../core/constants/app_constants.dart';
 
 // ApiResponse class embedded in the same file
 class ApiResponse {
@@ -37,7 +38,7 @@ class ApiResponse {
 
 class ClosingService {
   static const String baseUrl =
-      'https://fleet-vehicle-mgmt-backend-2.onrender.com/api/vehicle-closing';
+      '${AppConstants.baseUrl}/vehicle-closing';
 
   // Fetch all records
   static Future<List<ClosingRecord>> fetchRecords() async {

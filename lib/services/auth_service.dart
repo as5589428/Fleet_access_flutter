@@ -4,27 +4,10 @@ import '../models/user_model.dart';
 import 'api_service.dart';
 
 class AuthService {
-  final ApiService _apiService = ApiService.instance;
+  final ApiService _apiService = ApiService.authInstance;
 
   Future<Map<String, dynamic>> login(String employeeCode, String password) async {
     try {
-      // Demo Login Bypass
-      if (employeeCode == 'admin' && password == '12345678') {
-        developer.log('Demo admin login bypassed API', name: 'AuthService');
-        return {
-          'token': 'demo_token_admin',
-          'user': UserModel.fromJson(_mapUserJson({
-            'id': 'demo_admin',
-            'email': 'admin@demo.com',
-            'name': 'Demo Admin',
-            'role': 'ADMIN',
-            'isActive': true,
-            'createdAt': DateTime.now().toIso8601String(),
-          })),
-          'permissions': ['*'],
-        };
-      }
-
       final response = await _apiService.post('/auth/login', data: {
         'email': employeeCode,
         'password': password,

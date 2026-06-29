@@ -93,9 +93,43 @@ class _AddFuelDialogState extends State<AddFuelDialog> {
       _selectedVehicleNumber = vehicleNumber;
       _selectedVehicle = vehicle;
 
-      // Auto-select fuel type if vehicle has fuel types defined
-      if (vehicle != null && vehicle.fuelType.isNotEmpty) {
-        _selectedFuelType = vehicle.fuelType.first;
+      // Auto-select fuel type and unit if vehicle has data from API
+      if (vehicle != null) {
+        // 1. Auto-select Fuel Type
+        if (vehicle.fuelType.isNotEmpty) {
+          for (var ft in vehicle.fuelType) {
+            final normalized = ft.trim().toLowerCase();
+            final match = _fuelTypes.firstWhere(
+              (available) => available.toLowerCase() == normalized,
+              orElse: () => '',
+            );
+            if (match.isNotEmpty) {
+              _selectedFuelType = match;
+              break;
+            }
+          }
+        }
+
+        // 2. Auto-select Unit
+        if (vehicle.unit != null && vehicle.unit!.isNotEmpty) {
+          final normalized = vehicle.unit!.trim().toLowerCase();
+          final match = _units.firstWhere(
+            (available) => available.toLowerCase() == normalized,
+            orElse: () => '',
+          );
+          if (match.isNotEmpty) {
+            _selectedUnit = match;
+          }
+        } else {
+          // Optional: Infer unit from fuel type if not provided by API
+          if (_selectedFuelType == 'Electric') {
+            _selectedUnit = 'Kwh';
+          } else if (_selectedFuelType == 'CNG') {
+            _selectedUnit = 'Kg';
+          } else {
+            _selectedUnit = 'Litre';
+          }
+        }
       }
     });
   }
